@@ -1,9 +1,13 @@
 import cv2
 import numpy as np
 import random
+import yaml
 
-FPS = 60
-scene = np.zeros((500, 500, 3), dtype=np.uint8)+255
+with open("config.yaml") as f:
+	data = yaml.load(f, Loader=yaml.FullLoader)
+
+FPS = data['FPS']
+scene = np.zeros((data['width'], data['height'], 3), dtype=np.uint8)+255
 frame = scene.copy()
 body = []
 body_count = 2
