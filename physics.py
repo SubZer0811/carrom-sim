@@ -7,10 +7,12 @@ with open("config.yaml") as f:
 	data = yaml.load(f, Loader=yaml.FullLoader)
 
 FPS = data['FPS']
-scene = np.zeros((data['width'], data['height'], 3), dtype=np.uint8)+255
+width = data['width']
+height = data['height']
+scene = np.zeros((width, height, 3), dtype=np.uint8)+255
 frame = scene.copy()
 body = []
-body_count = 3
+body_count = 2
 
 class circle:
 	
@@ -31,7 +33,12 @@ class circle:
 
 	def update_pos(self, dt):
 		self.pos = (self.pos[0] + self.v[0]*dt, self.pos[1] + self.v[1]*dt)
-		print(self.pos)
+		if(self.pos[0]+self.radius > width or self.pos[0]-self.radius < 0):
+			self.v[0] = -self.v[0]
+		if(self.pos[1]+self.radius > height or self.pos[1]-self.radius < 0):
+			self.v[1] = -self.v[1]
+
+		# print(self.v)
 		self.draw_body()
 
 	def draw_body(self):
@@ -70,6 +77,12 @@ def resolve_collision(A, B):
 	
 	relative_velocity = [A.v[0] - B.v[0], A.v[1] - B.v[1]]
 
+	print(collision_normal)
+	print(relative_velocity)
+	if(dot_product(collision_normal, relative_velocity) > 0):
+		print("HERERERERASDFASDFASDFAWERLJASDFLKJ\n")
+		return
+
 	e = min(A.e, B.e)
 	# velocity_f = -(1+e)*dot_product(relative_velocity, collision_normal)
 	velocity_f = -(1+e)*dot_product(relative_velocity, collision_unit_v)
@@ -84,8 +97,6 @@ def resolve_collision(A, B):
 	B.v[0] -= J_vec[0]/B.mass
 	B.v[1] -= J_vec[1]/B.mass
 
-	print(collision_normal)
-	print(relative_velocity)
 	print(velocity_f)
 	
 def dot_product(v1, v2):
@@ -96,16 +107,17 @@ def create_bodies_random(n):
 	for i in range(n):
 		rad = random.randint(10, 30)
 		color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-		pos = [random.randint(-300, 300), random.randint(-300, 300)]
-		v = [random.randint(-30, 30), random.randint(-30, 30)]
-		e = random.randrange(0,100) / 100
+		pos = [random.randint(0, 500), random.randint(0, 500)]
+		v = [random.randint(-50, 50), random.randint(-50, 50)]
+		e = 0.8
+		# e = random.randrange(0,100) / 100
 		mass = random.randint(5, 10)
 		body.append(circle(rad, color, pos, v, e, mass))
 
 # create_bodies_random(body_count)
-body.append(circle(10, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [0, 0], [10, 10], 0.8, 10))
-body.append(circle(20, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [500, 500], [-10, -10], 0.8, 10))
-body.append(circle(20, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [0, 500], [10, -10], 0.8, 10))
+body.append(circle(10, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [100, 250], [20, 0], 0.8, 10))
+body.append(circle(10, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [300, 250], [5, 0], 0.8, 10))
+# body.append(circle(20, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [0, 500], [10, -10], 0.8, 10))
 
 while True:
 
