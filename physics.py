@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import random
 import yaml
+from circle import *
 
 with open("config.yaml") as f:
 	data = yaml.load(f, Loader=yaml.FullLoader)
@@ -12,37 +13,8 @@ height = data['height']
 scene = np.zeros((width, height, 3), dtype=np.uint8)+255
 frame = scene.copy()
 body = []
-body_count = 2
+body_count = 5
 
-class circle:
-	
-	radius = 0
-	color = ()
-	pos = []
-	v = []
-	e = 0 	# coefficient of restitution
-	mass = 0
-
-	def __init__(self, radius, color, pos, v, e, mass):
-		self.radius = radius
-		self.color = color
-		self.pos = pos
-		self.v = v
-		self.e = e
-		self.mass = mass
-
-	def update_pos(self, dt):
-		self.pos = (self.pos[0] + self.v[0]*dt, self.pos[1] + self.v[1]*dt)
-		if(self.pos[0]+self.radius > width or self.pos[0]-self.radius < 0):
-			self.v[0] = -self.v[0]
-		if(self.pos[1]+self.radius > height or self.pos[1]-self.radius < 0):
-			self.v[1] = -self.v[1]
-
-		# print(self.v)
-		self.draw_body()
-
-	def draw_body(self):
-		cv2.circle(frame, (int(self.pos[0]), int(self.pos[1])), self.radius, self.color, 3)
 
 def distance(pt1, pt2):
 	return pow(((pt1[0] - pt2[0]) ** 2 + (pt1[1] - pt2[1]) ** 2), 1/2)
@@ -114,17 +86,25 @@ def create_bodies_random(n):
 		mass = random.randint(5, 10)
 		body.append(circle(rad, color, pos, v, e, mass))
 
-# create_bodies_random(body_count)
-body.append(circle(10, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [100, 250], [20, 0], 0.8, 10))
-body.append(circle(10, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [300, 250], [5, 0], 0.8, 10))
+def resolve_out_of_bounds(obj):
+	# This needs to be handled by resolve collision
+	if(obj.pos[0]+obj.radius > width or obj.pos[0]-obj.radius < 0):
+		obj.v[0] = -obj.v[0]
+	if(obj.pos[1]+obj.radius > height or obj.pos[1]-obj.radius < 0):
+		obj.v[1] = -obj.v[1]
+
+create_bodies_random(body_count)
+# body.append(circle(10, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [100, 250], [20, 0], 0.8, 10))
+# body.append(circle(10, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [300, 250], [5, 0], 0.8, 10))
 # body.append(circle(20, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [0, 500], [10, -10], 0.8, 10))
 
 while True:
 
 	frame = scene.copy()
 	for i in body:
-		i.update_pos(0.1)
-	
+		i.update_pos(0.1, frame)
+		resolve_out_of_bounds(i)
+
 	check_collisions()
 
 	cv2.imshow("frame", frame)
