@@ -13,7 +13,6 @@ height = data['height']
 scene = np.zeros((width, height, 3), dtype=np.uint8)+255
 frame = scene.copy()
 body = []
-body_count = 5
 
 
 def distance(pt1, pt2):
@@ -49,8 +48,6 @@ def resolve_collision(A, B):
 	
 	relative_velocity = [A.v[0] - B.v[0], A.v[1] - B.v[1]]
 
-	print(collision_normal)
-	print(relative_velocity)
 	if(dot_product(collision_normal, relative_velocity) > 0):
 		print("HERERERERASDFASDFASDFAWERLJASDFLKJ\n")
 		return
@@ -60,15 +57,19 @@ def resolve_collision(A, B):
 	velocity_f = -(1+e)*dot_product(relative_velocity, collision_unit_v)
 
 	# J stands for the impulse
-	J = velocity_f / (1/A.mass + 1/B.mass)
+	J = velocity_f / (A.inv_mass + B.inv_mass)
 	# J_vec = [J*collision_normal[0], J*collision_normal[1]]
 	J_vec = [J*collision_unit_v[0], J*collision_unit_v[1]]
 
-	A.v[0] += J_vec[0]/A.mass
-	A.v[1] += J_vec[1]/A.mass
-	B.v[0] -= J_vec[0]/B.mass
-	B.v[1] -= J_vec[1]/B.mass
+	A.v[0] += J_vec[0]*A.inv_mass
+	A.v[1] += J_vec[1]*A.inv_mass
+	B.v[0] -= J_vec[0]*B.inv_mass
+	B.v[1] -= J_vec[1]*B.inv_mass
 
+	print(collision_normal)
+	print(relative_velocity)
+	print(J)
+	print(J_vec)
 	print(velocity_f)
 	
 def dot_product(v1, v2):
@@ -93,10 +94,11 @@ def resolve_out_of_bounds(obj):
 	if(obj.pos[1]+obj.radius > height or obj.pos[1]-obj.radius < 0):
 		obj.v[1] = -obj.v[1]
 
-create_bodies_random(body_count)
-# body.append(circle(10, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [100, 250], [20, 0], 0.8, 10))
-# body.append(circle(10, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [300, 250], [5, 0], 0.8, 10))
-# body.append(circle(20, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [0, 500], [10, -10], 0.8, 10))
+# create_bodies_random(body_count)
+body.append(circle(30, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [100, 250], [20, 0], 1, 1, 1))
+body.append(circle(30, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [300, 250], [-20, 0], 1, 1, 1))
+# body.append(circle(100, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [250, 250], [0, 0], 1, 0))
+body_count = len(body)
 
 while True:
 
