@@ -4,9 +4,9 @@ import vector.vector as vector
 class body:
 	
 	color = ()
-	pos = []
+	pos = vector.point2d((0, 0))		# TODO should be able to create empty vectors and points
 	theta = 0	# angle
-	v = []
+	v = vector.vector2d((0, 0))
 	w = 0	# angular velocity in radians
 	e = 0 	# coefficient of restitution
 	mass = 0
@@ -14,8 +14,8 @@ class body:
 
 	def __init__(self, color, pos, v, e, mass, w):
 		self.color = color
-		self.pos = pos
-		self.v = v
+		self.pos = vector.point2d(pos)
+		self.v = vector.vector2d(v)
 		self.w = w
 		self.e = e
 		self.mass = mass
@@ -25,7 +25,7 @@ class body:
 			self.inv_mass = 1/mass
 
 	def update_pos(self, dt, frame):
-		self.pos = (self.pos[0] + self.v[0]*dt, self.pos[1] + self.v[1]*dt)
+		self.pos = vector.point(self.pos + self.v*dt)
 		self.theta += self.w*dt
 		self.draw_body(frame)
 

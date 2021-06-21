@@ -3,7 +3,7 @@ import numpy as np
 import random
 import yaml
 from circle import *
-from ..vector import vector
+import vector.vector as vector
 
 with open("config.yaml") as f:
 	data = yaml.load(f, Loader=yaml.FullLoader)
@@ -15,9 +15,9 @@ scene = np.zeros((width, height, 3), dtype=np.uint8)+255
 frame = scene.copy()
 body = []
 
-
+# TODO: This function needs to be implemented in vector package.
 def distance(pt1, pt2):
-	return pow(((pt1[0] - pt2[0]) ** 2 + (pt1[1] - pt2[1]) ** 2), 1/2)
+	return pow(((pt1.point[0] - pt2.point[0]) ** 2 + (pt1.point[1] - pt2.point[1]) ** 2), 1/2)
 
 def is_coliding(A, B):
 	if distance(A.pos, B.pos) <= A.radius + B.radius:
@@ -42,31 +42,46 @@ def magnitude(v):
 	return pow(v[0]**2 + v[1]**2, 1/2)
 
 def resolve_collision(A, B):
+	assert isinstance(A, circle)
+	assert isinstance(B, circle)
 	print("RESOLVING COLLISION")
-	collision_normal = [A.pos[0] - B.pos[0], A.pos[1] - B.pos[1]]
-	collision_mag = magnitude(collision_normal)
-	collision_unit_v = [i/collision_mag for i in collision_normal]
+	# collision_normal = [A.pos[0] - B.pos[0], A.pos[1] - B.pos[1]]
+	collision_normal = vector.vector(A.pos - B.pos)
+	print(A.pos, B.pos)
+	# collision_mag = magnitude(collision_normal)
+	collision_mag = collision_normal.magnitude()
+	print(f'{collision_normal.vector = } *** {collision_mag = } *** {collision_normal.magnitude()}')
+	# collision_unit_v = [i/collision_mag for i in collision_normal]
+	collision_unit_v = vector.vector(tuple([i/collision_mag for i in collision_normal.vector]))		# TODO Need to implement function for normalizing vector
 	
-	relative_velocity = [A.v[0] - B.v[0], A.v[1] - B.v[1]]
+	# relative_velocity = [A.v[0] - B.v[0], A.v[1] - B.v[1]]
+	relative_velocity = A.v - B.v
 
-	if(dot_product(collision_normal, relative_velocity) > 0):
+	print(f'{collision_normal.vector = }')
+	print(f'{relative_velocity.vector = }')
+	print(collision_normal * relative_velocity)
+	# if(dot_product(collision_normal, relative_velocity) > 0):
+	if((collision_normal * relative_velocity) > 0):
 		print("HERERERERASDFASDFASDFAWERLJASDFLKJ\n")
 		return
 
 	e = min(A.e, B.e)
 	# velocity_f = -(1+e)*dot_product(relative_velocity, collision_normal)
-	velocity_f = -(1+e)*dot_product(relative_velocity, collision_unit_v)
+	# velocity_f = -(1+e)*dot_product(relative_velocity, collision_unit_v)
+	velocity_f = -(1+e)*(relative_velocity * collision_unit_v)
 
 	# J stands for the impulse
 	temp_A = ()
-	J_mag = velocity_f / (A.inv_mass + B.inv_mass + temp_A + temp_B)
+	J_mag = velocity_f * (1/(A.inv_mass + B.inv_mass))		# TODO Need to implement constant '/' operator
 	# J_vec = [J_mag*collision_normal[0], J_mag*collision_normal[1]]
-	J_vec = [J_mag*collision_unit_v[0], J_mag*collision_unit_v[1]]
+	J_vec = J_mag*collision_unit_v
 
-	A.v[0] += J_vec[0]*A.inv_mass
-	A.v[1] += J_vec[1]*A.inv_mass
-	B.v[0] -= J_vec[0]*B.inv_mass
-	B.v[1] -= J_vec[1]*B.inv_mass
+	# A.v[0] += J_vec[0]*A.inv_mass
+	# A.v[1] += J_vec[1]*A.inv_mass
+	# B.v[0] -= J_vec[0]*B.inv_mass
+	# B.v[1] -= J_vec[1]*B.inv_mass
+	A.v += J_vec*A.inv_mass
+	B.v -= J_vec*B.inv_mass
 	
 def dot_product(v1, v2):
 	return (v1[0]*v2[0] + v1[1]*v2[1])
@@ -85,14 +100,16 @@ def create_bodies_random(n):
 
 def resolve_out_of_bounds(obj):
 	# This needs to be handled by resolve collision
-	if(obj.pos[0]+obj.radius > width or obj.pos[0]-obj.radius < 0):
-		obj.v[0] = -obj.v[0]
-	if(obj.pos[1]+obj.radius > height or obj.pos[1]-obj.radius < 0):
-		obj.v[1] = -obj.v[1]
+	if(obj.pos.point[0]+obj.radius > width or obj.pos.point[0]-obj.radius < 0):
+		# obj.v[0] = -obj.v[0]
+		obj.v = vector.vector2d((-obj.v.vector[0], obj.v.vector[1]))
+	if(obj.pos.point[1]+obj.radius > height or obj.pos.point[1]-obj.radius < 0):
+		# obj.v[1] = -obj.v[1]
+		obj.v = vector.vector2d((obj.v.vector[0], -obj.v.vector[1]))
 
 # create_bodies_random(body_count)
-body.append(circle(30, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [100, 250], [20, 0], 1, 1, 1))
-body.append(circle(30, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [300, 250], [-20, 0], 1, 1, 1))
+body.append(circle(30, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), (100, 250), (20, 0), 1, 1, 1))
+body.append(circle(30, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), (300, 250), (-20, 0), 1, 1, 1))
 # body.append(circle(100, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [250, 250], [0, 0], 1, 0))
 body_count = len(body)
 
