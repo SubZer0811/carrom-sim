@@ -3,6 +3,7 @@ import numpy as np
 import random
 import yaml
 from circle import *
+from ..vector import vector
 
 with open("config.yaml") as f:
 	data = yaml.load(f, Loader=yaml.FullLoader)
@@ -57,20 +58,15 @@ def resolve_collision(A, B):
 	velocity_f = -(1+e)*dot_product(relative_velocity, collision_unit_v)
 
 	# J stands for the impulse
-	J = velocity_f / (A.inv_mass + B.inv_mass)
-	# J_vec = [J*collision_normal[0], J*collision_normal[1]]
-	J_vec = [J*collision_unit_v[0], J*collision_unit_v[1]]
+	temp_A = ()
+	J_mag = velocity_f / (A.inv_mass + B.inv_mass + temp_A + temp_B)
+	# J_vec = [J_mag*collision_normal[0], J_mag*collision_normal[1]]
+	J_vec = [J_mag*collision_unit_v[0], J_mag*collision_unit_v[1]]
 
 	A.v[0] += J_vec[0]*A.inv_mass
 	A.v[1] += J_vec[1]*A.inv_mass
 	B.v[0] -= J_vec[0]*B.inv_mass
 	B.v[1] -= J_vec[1]*B.inv_mass
-
-	print(collision_normal)
-	print(relative_velocity)
-	print(J)
-	print(J_vec)
-	print(velocity_f)
 	
 def dot_product(v1, v2):
 	return (v1[0]*v2[0] + v1[1]*v2[1])
