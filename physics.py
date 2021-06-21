@@ -45,41 +45,32 @@ def resolve_collision(A, B):
 	assert isinstance(A, circle)
 	assert isinstance(B, circle)
 	print("RESOLVING COLLISION")
-	# collision_normal = [A.pos[0] - B.pos[0], A.pos[1] - B.pos[1]]
+
 	collision_normal = vector.vector(A.pos - B.pos)
 	print(A.pos, B.pos)
-	# collision_mag = magnitude(collision_normal)
+
 	collision_mag = collision_normal.magnitude()
 	print(f'{collision_normal.vector = } *** {collision_mag = } *** {collision_normal.magnitude()}')
-	# collision_unit_v = [i/collision_mag for i in collision_normal]
+
 	collision_unit_v = vector.vector(tuple([i/collision_mag for i in collision_normal.vector]))		# TODO Need to implement function for normalizing vector
 	
-	# relative_velocity = [A.v[0] - B.v[0], A.v[1] - B.v[1]]
 	relative_velocity = A.v - B.v
 
 	print(f'{collision_normal.vector = }')
 	print(f'{relative_velocity.vector = }')
 	print(collision_normal * relative_velocity)
-	# if(dot_product(collision_normal, relative_velocity) > 0):
+
 	if((collision_normal * relative_velocity) > 0):
 		print("HERERERERASDFASDFASDFAWERLJASDFLKJ\n")
 		return
 
 	e = min(A.e, B.e)
-	# velocity_f = -(1+e)*dot_product(relative_velocity, collision_normal)
-	# velocity_f = -(1+e)*dot_product(relative_velocity, collision_unit_v)
 	velocity_f = -(1+e)*(relative_velocity * collision_unit_v)
 
 	# J stands for the impulse
-	temp_A = ()
 	J_mag = velocity_f * (1/(A.inv_mass + B.inv_mass))		# TODO Need to implement constant '/' operator
-	# J_vec = [J_mag*collision_normal[0], J_mag*collision_normal[1]]
 	J_vec = J_mag*collision_unit_v
 
-	# A.v[0] += J_vec[0]*A.inv_mass
-	# A.v[1] += J_vec[1]*A.inv_mass
-	# B.v[0] -= J_vec[0]*B.inv_mass
-	# B.v[1] -= J_vec[1]*B.inv_mass
 	A.v += J_vec*A.inv_mass
 	B.v -= J_vec*B.inv_mass
 	
@@ -89,27 +80,25 @@ def dot_product(v1, v2):
 def create_bodies_random(n):
 	
 	for i in range(n):
-		rad = random.randint(10, 30)
+		rad = random.randint(30, 30)
 		color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-		pos = [random.randint(0, 500), random.randint(0, 500)]
-		v = [random.randint(-50, 50), random.randint(-50, 50)]
+		pos = (random.randint(0, 500), random.randint(0, 500))
+		v = (random.randint(-50, 50), random.randint(-50, 50))
 		e = 0.8
 		# e = random.randrange(0,100) / 100
 		mass = random.randint(5, 10)
-		body.append(circle(rad, color, pos, v, e, mass))
+		body.append(circle(rad, color, pos, v, e, mass, w=0))
 
 def resolve_out_of_bounds(obj):
 	# This needs to be handled by resolve collision
 	if(obj.pos.point[0]+obj.radius > width or obj.pos.point[0]-obj.radius < 0):
-		# obj.v[0] = -obj.v[0]
 		obj.v = vector.vector2d((-obj.v.vector[0], obj.v.vector[1]))
 	if(obj.pos.point[1]+obj.radius > height or obj.pos.point[1]-obj.radius < 0):
-		# obj.v[1] = -obj.v[1]
 		obj.v = vector.vector2d((obj.v.vector[0], -obj.v.vector[1]))
 
-# create_bodies_random(body_count)
-body.append(circle(30, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), (100, 250), (20, 0), 1, 1, 1))
-body.append(circle(30, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), (300, 250), (-20, 0), 1, 1, 1))
+create_bodies_random(5)
+# body.append(circle(30, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), (100, 250), (20, 0), 1, 1, 1))
+# body.append(circle(30, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), (300, 250), (-20, 0), 1, 1, 1))
 # body.append(circle(100, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), [250, 250], [0, 0], 1, 0))
 body_count = len(body)
 
